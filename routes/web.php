@@ -89,6 +89,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/users', [AdminUser::class, 'index'])->name('users.index');
+        Route::get('/users/create', [AdminUser::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminUser::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [AdminUser::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [AdminUser::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [AdminUser::class, 'destroy'])->name('users.destroy');
         Route::get('/plans', [AdminPlan::class, 'index'])->name('plans.index');
         Route::get('/plans/create', [AdminPlan::class, 'create'])->name('plans.create');
         Route::post('/plans', [AdminPlan::class, 'store'])->name('plans.store');

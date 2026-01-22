@@ -393,6 +393,44 @@
                 </div>
             </div>
         </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center text-muted">
+                    No plans yet. Create your first plan to get started.
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold mb-0">Plan Governance</h5>
+            <button class="btn btn-outline-light btn-sm">View Change Log</button>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <label class="form-label">Default Trial Days</label>
+                <input type="number" class="form-control" value="14">
+            </div>
+            <div class="col-lg-4">
+                <label class="form-label">Grace Period (days)</label>
+                <input type="number" class="form-control" value="7">
+            </div>
+            <div class="col-lg-4">
+                <label class="form-label">Auto-cancel Idle Plans</label>
+                <select class="form-select">
+                    <option>Disabled</option>
+                    <option>After 30 days</option>
+                    <option>After 60 days</option>
+                </select>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary">Save Governance Rules</button>
+        </div>
     </div>
 </div>
 
