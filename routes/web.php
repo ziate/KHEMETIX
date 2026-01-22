@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController as AdminUser;
 use App\Http\Controllers\Admin\PlanController as AdminPlan;
 use App\Http\Controllers\Admin\ModelController as AdminModel;
 use App\Http\Controllers\Admin\SettingsController as AdminSettings;
+use App\Http\Controllers\Admin\AiChatController as AdminAiChat;
 
 use App\Http\Controllers\Install\InstallController;
 
@@ -102,6 +103,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/plans/{plan}', [AdminPlan::class, 'destroy'])->name('plans.destroy');
         Route::get('/models', [AdminModel::class, 'index'])->name('models.index');
         Route::get('/settings', [AdminSettings::class, 'index'])->name('settings.index');
+        Route::get('/ai-chat', [AdminAiChat::class, 'index'])->name('ai-chat.index');
     });
 });
 
