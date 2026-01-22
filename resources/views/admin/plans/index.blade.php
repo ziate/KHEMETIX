@@ -58,6 +58,11 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-info">Sync Pricing</button>
+        @php
+            $createUrl = \Illuminate\Support\Facades\Route::has('admin.plans.create')
+                ? route('admin.plans.create')
+                : url('/admin/plans/create');
+        @endphp
         @php($createUrl = \Illuminate\Support\Facades\Route::has('admin.plans.create') ? route('admin.plans.create') : url('/admin/plans/create'))
         <a class="btn btn-primary" href="{{ $createUrl }}">Create New Plan</a>
     </div>
@@ -103,6 +108,11 @@
                             @endif
                         </small>
                         <div class="d-flex gap-2">
+                            @php
+                                $editUrl = \Illuminate\Support\Facades\Route::has('admin.plans.edit')
+                                    ? route('admin.plans.edit', $plan)
+                                    : url('/admin/plans/' . $plan->id . '/edit');
+                            @endphp
                             @php($editUrl = \Illuminate\Support\Facades\Route::has('admin.plans.edit') ? route('admin.plans.edit', $plan) : url('/admin/plans/' . $plan->id . '/edit'))
                             <a class="btn btn-outline-info btn-sm" href="{{ $editUrl }}">Edit</a>
                             <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deletePlan{{ $plan->id }}">Delete</button>
@@ -124,6 +134,11 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                        @php
+                            $deleteUrl = \Illuminate\Support\Facades\Route::has('admin.plans.destroy')
+                                ? route('admin.plans.destroy', $plan)
+                                : url('/admin/plans/' . $plan->id);
+                        @endphp
                         @php($deleteUrl = \Illuminate\Support\Facades\Route::has('admin.plans.destroy') ? route('admin.plans.destroy', $plan) : url('/admin/plans/' . $plan->id))
                         <form method="POST" action="{{ $deleteUrl }}">
                             @csrf
