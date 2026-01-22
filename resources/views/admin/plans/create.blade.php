@@ -13,6 +13,8 @@
                 </ul>
             </div>
         @endif
+        @php($storeUrl = \Illuminate\Support\Facades\Route::has('admin.plans.store') ? route('admin.plans.store') : url('/admin/plans'))
+        <form method="POST" action="{{ $storeUrl }}" class="row g-3">
         <form method="POST" action="{{ route('admin.plans.store') }}" class="row g-3">
             @csrf
             <div class="col-md-6">
@@ -58,6 +60,8 @@
                 </div>
             </div>
             <div class="col-12 d-flex justify-content-end gap-2">
+                @php($indexUrl = \Illuminate\Support\Facades\Route::has('admin.plans.index') ? route('admin.plans.index') : url('/admin/plans'))
+                <a href="{{ $indexUrl }}" class="btn btn-outline-light">Cancel</a>
                 <a href="{{ route('admin.plans.index') }}" class="btn btn-outline-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Create Plan</button>
             </div>
