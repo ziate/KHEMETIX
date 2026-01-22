@@ -15,6 +15,7 @@
         @endif
         @php($updateUrl = \Illuminate\Support\Facades\Route::has('admin.plans.update') ? route('admin.plans.update', $plan) : url('/admin/plans/' . $plan->id))
         <form method="POST" action="{{ $updateUrl }}" class="row g-3">
+        <form method="POST" action="{{ route('admin.plans.update', $plan) }}" class="row g-3">
             @csrf
             @method('PUT')
             <div class="col-md-6">
@@ -62,6 +63,7 @@
             <div class="col-12 d-flex justify-content-end gap-2">
                 @php($indexUrl = \Illuminate\Support\Facades\Route::has('admin.plans.index') ? route('admin.plans.index') : url('/admin/plans'))
                 <a href="{{ $indexUrl }}" class="btn btn-outline-light">Cancel</a>
+                <a href="{{ route('admin.plans.index') }}" class="btn btn-outline-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">Update Plan</button>
             </div>
         </form>
