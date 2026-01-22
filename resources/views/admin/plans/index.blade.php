@@ -1,48 +1,57 @@
-@extends("layouts.admin")
-@section("title", __("messages.plans"))
-@section("header", __("messages.plans"))
-@section("content")
+@extends('layouts.admin')
+
+@section('title', __('messages.plans'))
+@section('header', __('messages.plans'))
+
+@section('content')
+
 @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    <div class="alert alert-success mb-3">{{ session('success') }}</div>
 @endif
+
+@php
+    // روابط آمنة حتى لو بعض الراوتات غير موجودة
+    $createUrl = \Illuminate\Support\Facades\Route::has('admin.plans.create')
+        ? route('admin.plans.create')
+        : url('/admin/plans/create');
+@endphp
 
 <div class="row g-4 mb-4">
     <div class="col-xl-3 col-md-6">
         <div class="card h-100">
             <div class="card-body">
                 <h6 class="text-uppercase text-muted">Active Plans</h6>
-                <h3 class="fw-bold mb-0">{{ $planCount }}</h3>
-                <h3 class="fw-bold mb-0">4</h3>
+                <h3 class="fw-bold mb-0">{{ (int)($planCount ?? 0) }}</h3>
                 <small class="text-muted">Published offers</small>
             </div>
         </div>
     </div>
+
     <div class="col-xl-3 col-md-6">
         <div class="card h-100">
             <div class="card-body">
                 <h6 class="text-uppercase text-muted">Subscribers</h6>
-                <h3 class="fw-bold mb-0">{{ number_format($subscriberCount) }}</h3>
-                <h3 class="fw-bold mb-0">2,480</h3>
+                <h3 class="fw-bold mb-0">{{ number_format((int)($subscriberCount ?? 0)) }}</h3>
                 <small class="text-muted">Last 30 days</small>
             </div>
         </div>
     </div>
+
     <div class="col-xl-3 col-md-6">
         <div class="card h-100">
             <div class="card-body">
                 <h6 class="text-uppercase text-muted">Monthly MRR</h6>
-                <h3 class="fw-bold mb-0">${{ number_format($monthlyMrr, 2) }}</h3>
-                <h3 class="fw-bold mb-0">$86,200</h3>
-                <small class="text-muted">+12% MoM</small>
+                <h3 class="fw-bold mb-0">${{ number_format((float)($monthlyMrr ?? 0), 2) }}</h3>
+                <small class="text-muted">Estimated</small>
             </div>
         </div>
     </div>
+
     <div class="col-xl-3 col-md-6">
         <div class="card h-100">
             <div class="card-body">
                 <h6 class="text-uppercase text-muted">Overage Revenue</h6>
-                <h3 class="fw-bold mb-0">${{ number_format($overageRevenue, 2) }}</h3>
-                <h3 class="fw-bold mb-0">$5,420</h3>
+                <h3 class="fw-bold mb-0">${{ number_format((float)($overageRevenue ?? 0), 2) }}</h3>
                 <small class="text-muted">Usage-based billing</small>
             </div>
         </div>
@@ -51,77 +60,92 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div class="btn-group">
-        <button class="btn btn-outline-light">All Plans</button>
-        <button class="btn btn-outline-light">Monthly</button>
-        <button class="btn btn-outline-light">Annual</button>
-        <button class="btn btn-outline-light">Enterprise</button>
+        <button type="button" class="btn btn-outline-light">All Plans</button>
+        <button type="button" class="btn btn-outline-light">Monthly</button>
+        <button type="button" class="btn btn-outline-light">Annual</button>
+        <button type="button" class="btn btn-outline-light">Enterprise</button>
     </div>
+
     <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-info">Sync Pricing</button>
-        @php
-            $createUrl = \Illuminate\Support\Facades\Route::has('admin.plans.create')
-                ? route('admin.plans.create')
-                : url('/admin/plans/create');
-        @endphp
-        @php($createUrl = \Illuminate\Support\Facades\Route::has('admin.plans.create') ? route('admin.plans.create') : url('/admin/plans/create'))
+        <button type="button" class="btn btn-outline-info">Sync Pricing</button>
         <a class="btn btn-primary" href="{{ $createUrl }}">Create New Plan</a>
     </div>
 </div>
 
 <div class="row g-4">
     @forelse($plans as $plan)
+        @php
+            $editUrl = \Illuminate\Support\Facades\Route::has('admin.plans.edit')
+                ? route('admin.plans.edit', $plan)
+                : url('/admin/plans/' . $plan->id . '/edit');
+
+            $deleteUrl = \Illuminate\Support\Facades\Route::has('admin.plans.destroy')
+                ? route('admin.plans.destroy', $plan)
+                : url('/admin/plans/' . $plan->id);
+
+            $isActive = (bool)($plan->is_active ?? true);
+            $badgeClass = $isActive ? 'success' : 'secondary';
+            $badgeText  = $isActive ? 'Active' : 'Inactive';
+        @endphp
+
         <div class="col-lg-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h4 class="fw-bold">{{ $plan->name }}</h4>
-                            <p class="text-muted">Billing: {{ ucfirst($plan->billing_cycle) }}</p>
+                            <h4 class="fw-bold mb-1">{{ $plan->name }}</h4>
+                            <p class="text-muted mb-0">Billing: {{ ucfirst($plan->billing_cycle ?? 'monthly') }}</p>
                         </div>
-                        <span class="badge bg-success">Active</span>
+                        <span class="badge bg-{{ $badgeClass }}">{{ $badgeText }}</span>
                     </div>
-                    <div class="display-6 fw-bold">${{ number_format($plan->price, 2) }}
-                        <span class="fs-6 text-muted">/{{ $plan->billing_cycle }}</span>
+
+                    <div class="display-6 fw-bold mt-3">
+                        ${{ number_format((float)($plan->price ?? 0), 2) }}
+                        <span class="fs-6 text-muted">/{{ $plan->billing_cycle ?? 'monthly' }}</span>
                     </div>
+
                     <div class="mt-3">
                         <div class="d-flex justify-content-between">
                             <span>Credits</span>
-                            <span class="fw-semibold">{{ number_format($plan->included_credits) }}</span>
+                            <span class="fw-semibold">{{ number_format((int)($plan->included_credits ?? 0)) }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Tokens / day</span>
-                            <span class="fw-semibold">{{ number_format($plan->max_tokens_per_day ?? 0) }}</span>
+                            <span class="fw-semibold">{{ number_format((int)($plan->max_tokens_per_day ?? 0)) }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Requests / day</span>
-                            <span class="fw-semibold">{{ number_format($plan->max_requests_per_day ?? 0) }}</span>
+                            <span class="fw-semibold">{{ number_format((int)($plan->max_requests_per_day ?? 0)) }}</span>
                         </div>
                     </div>
+
                     <hr>
+
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">
                             Overage:
-                            @if($plan->overage_enabled)
-                                ${{ number_format($plan->overage_price_per_1k_tokens, 2) }} / 1K tokens
+                            @if(!empty($plan->overage_enabled))
+                                ${{ number_format((float)($plan->overage_price_per_1k_tokens ?? 0), 2) }} / 1K tokens
                             @else
                                 Disabled
                             @endif
                         </small>
+
                         <div class="d-flex gap-2">
-                            @php
-                                $editUrl = \Illuminate\Support\Facades\Route::has('admin.plans.edit')
-                                    ? route('admin.plans.edit', $plan)
-                                    : url('/admin/plans/' . $plan->id . '/edit');
-                            @endphp
-                            @php($editUrl = \Illuminate\Support\Facades\Route::has('admin.plans.edit') ? route('admin.plans.edit', $plan) : url('/admin/plans/' . $plan->id . '/edit'))
                             <a class="btn btn-outline-info btn-sm" href="{{ $editUrl }}">Edit</a>
-                            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deletePlan{{ $plan->id }}">Delete</button>
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deletePlan{{ $plan->id }}">
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        {{-- Delete Modal --}}
         <div class="modal fade" id="deletePlan{{ $plan->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content bg-dark text-white">
@@ -129,17 +153,14 @@
                         <h5 class="modal-title">Delete Plan</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
+
                     <div class="modal-body">
                         Are you sure you want to delete <strong>{{ $plan->name }}</strong>? This action cannot be undone.
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                        @php
-                            $deleteUrl = \Illuminate\Support\Facades\Route::has('admin.plans.destroy')
-                                ? route('admin.plans.destroy', $plan)
-                                : url('/admin/plans/' . $plan->id);
-                        @endphp
-                        @php($deleteUrl = \Illuminate\Support\Facades\Route::has('admin.plans.destroy') ? route('admin.plans.destroy', $plan) : url('/admin/plans/' . $plan->id))
+
                         <form method="POST" action="{{ $deleteUrl }}">
                             @csrf
                             @method('DELETE')
@@ -147,335 +168,20 @@
                         </form>
                     </div>
                 </div>
-        <a class="btn btn-primary" href="{{ route('admin.plans.create') }}">Create New Plan</a>
-    </div>
-</div>
-
-<div class="row g-4">
-    @forelse($plans as $plan)
-        <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h4 class="fw-bold">{{ $plan->name }}</h4>
-                            <p class="text-muted">Billing: {{ ucfirst($plan->billing_cycle) }}</p>
-                        </div>
-                        <span class="badge bg-success">Active</span>
-                    </div>
-                    <div class="display-6 fw-bold">${{ number_format($plan->price, 2) }}
-                        <span class="fs-6 text-muted">/{{ $plan->billing_cycle }}</span>
-                    </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center text-muted">
+                    No plans yet. Create your first plan to get started.
                     <div class="mt-3">
-                        <div class="d-flex justify-content-between">
-                            <span>Credits</span>
-                            <span class="fw-semibold">{{ number_format($plan->included_credits) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Tokens / day</span>
-                            <span class="fw-semibold">{{ number_format($plan->max_tokens_per_day ?? 0) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Requests / day</span>
-                            <span class="fw-semibold">{{ number_format($plan->max_requests_per_day ?? 0) }}</span>
-                        </div>
+                        <a class="btn btn-primary" href="{{ $createUrl }}">Create New Plan</a>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            Overage:
-                            @if($plan->overage_enabled)
-                                ${{ number_format($plan->overage_price_per_1k_tokens, 2) }} / 1K tokens
-                            @else
-                                Disabled
-                            @endif
-                        </small>
-                        <div class="d-flex gap-2">
-                            <a class="btn btn-outline-info btn-sm" href="{{ route('admin.plans.edit', $plan) }}">Edit</a>
-                            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deletePlan{{ $plan->id }}">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="deletePlan{{ $plan->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content bg-dark text-white">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Delete Plan</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Are you sure you want to delete <strong>{{ $plan->name }}</strong>? This action cannot be undone.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                        <form method="POST" action="{{ route('admin.plans.destroy', $plan) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Yes, delete</button>
-                        </form>
-                    </div>
-                </div>
-</div>
-
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div class="btn-group">
-        <button class="btn btn-outline-light">All Plans</button>
-        <button class="btn btn-outline-light">Monthly</button>
-        <button class="btn btn-outline-light">Annual</button>
-        <button class="btn btn-outline-light">Enterprise</button>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-info">Sync Pricing</button>
-        <button class="btn btn-primary">Create New Plan</button>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4 class="fw-bold">Starter</h4>
-                        <p class="text-muted">Best for pilots & MVPs</p>
-                    </div>
-                    <span class="badge bg-success">Active</span>
-                </div>
-                <div class="display-6 fw-bold">$10<span class="fs-6 text-muted">/mo</span></div>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Credits</span>
-                        <span class="fw-semibold">1,000</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Tokens / day</span>
-                        <span class="fw-semibold">50K</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Requests / day</span>
-                        <span class="fw-semibold">2K</span>
-                    </div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Overage: $0.25 / 1K tokens</small>
-                    <button class="btn btn-outline-primary btn-sm">Edit</button>
-                </div>
-            </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center text-muted">
-                    No plans yet. Create your first plan to get started.
                 </div>
             </div>
         </div>
     @endforelse
 </div>
 
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Plan Governance</h5>
-            <button class="btn btn-outline-light btn-sm">View Change Log</button>
-        </div>
-        <div class="row g-3">
-            <div class="col-lg-4">
-                <label class="form-label">Default Trial Days</label>
-                <input type="number" class="form-control" value="14">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Grace Period (days)</label>
-                <input type="number" class="form-control" value="7">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Auto-cancel Idle Plans</label>
-                <select class="form-select">
-                    <option>Disabled</option>
-                    <option>After 30 days</option>
-                    <option>After 60 days</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-primary">Save Governance Rules</button>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card h-100 border border-2 border-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4 class="fw-bold">Growth</h4>
-                        <p class="text-muted">For scaling teams</p>
-                    </div>
-                    <span class="badge bg-info">Popular</span>
-                </div>
-                <div class="display-6 fw-bold">$49<span class="fs-6 text-muted">/mo</span></div>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Credits</span>
-                        <span class="fw-semibold">10,000</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Tokens / day</span>
-                        <span class="fw-semibold">250K</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Requests / day</span>
-                        <span class="fw-semibold">10K</span>
-                    </div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Overage: $0.18 / 1K tokens</small>
-                    <button class="btn btn-outline-info btn-sm">Edit</button>
-                </div>
-            </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center text-muted">
-                    No plans yet. Create your first plan to get started.
-                </div>
-            </div>
-        </div>
-    @endforelse
-</div>
-
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Plan Governance</h5>
-            <button class="btn btn-outline-light btn-sm">View Change Log</button>
-        </div>
-        <div class="row g-3">
-            <div class="col-lg-4">
-                <label class="form-label">Default Trial Days</label>
-                <input type="number" class="form-control" value="14">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Grace Period (days)</label>
-                <input type="number" class="form-control" value="7">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Auto-cancel Idle Plans</label>
-                <select class="form-select">
-                    <option>Disabled</option>
-                    <option>After 30 days</option>
-                    <option>After 60 days</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-primary">Save Governance Rules</button>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4 class="fw-bold">Enterprise</h4>
-                        <p class="text-muted">Custom SLAs & governance</p>
-                    </div>
-                    <span class="badge bg-secondary">Custom</span>
-                </div>
-                <div class="display-6 fw-bold">Custom</div>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between">
-                        <span>Credits</span>
-                        <span class="fw-semibold">Unlimited</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Tokens / day</span>
-                        <span class="fw-semibold">Unlimited</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Requests / day</span>
-                        <span class="fw-semibold">Unlimited</span>
-                    </div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Overage: Negotiated</small>
-                    <button class="btn btn-outline-secondary btn-sm">Edit</button>
-                </div>
-            </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center text-muted">
-                    No plans yet. Create your first plan to get started.
-                </div>
-            </div>
-        </div>
-    @endforelse
-</div>
-
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Plan Governance</h5>
-            <button class="btn btn-outline-light btn-sm">View Change Log</button>
-        </div>
-        <div class="row g-3">
-            <div class="col-lg-4">
-                <label class="form-label">Default Trial Days</label>
-                <input type="number" class="form-control" value="14">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Grace Period (days)</label>
-                <input type="number" class="form-control" value="7">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Auto-cancel Idle Plans</label>
-                <select class="form-select">
-                    <option>Disabled</option>
-                    <option>After 30 days</option>
-                    <option>After 60 days</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-primary">Save Governance Rules</button>
-        </div>
-    </div>
-</div>
-
-<div class="card mt-4">
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Plan Governance</h5>
-            <button class="btn btn-outline-light btn-sm">View Change Log</button>
-        </div>
-        <div class="row g-3">
-            <div class="col-lg-4">
-                <label class="form-label">Default Trial Days</label>
-                <input type="number" class="form-control" value="14">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Grace Period (days)</label>
-                <input type="number" class="form-control" value="7">
-            </div>
-            <div class="col-lg-4">
-                <label class="form-label">Auto-cancel Idle Plans</label>
-                <select class="form-select">
-                    <option>Disabled</option>
-                    <option>After 30 days</option>
-                    <option>After 60 days</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-primary">Save Governance Rules</button>
-        </div>
-    </div>
-</div>
 @endsection
