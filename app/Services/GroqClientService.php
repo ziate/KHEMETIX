@@ -27,4 +27,21 @@ class GroqClientService {
             return ["success" => false, "error" => $e->getMessage(), "latency" => (int)((microtime(true) - $start) * 1000)];
         }
     }
+
+    public function listModels()
+    {
+        $start = microtime(true);
+        try {
+            $response = Http::withToken($this->apiKey)
+                ->timeout(30)
+                ->get($this->baseUrl . "/models");
+            $latency = (int)((microtime(true) - $start) * 1000);
+            if ($response->successful()) {
+                return ["success" => true, "data" => $response->json(), "latency" => $latency];
+            }
+            return ["success" => false, "error" => $response->body(), "latency" => $latency];
+        } catch (\Exception $e) {
+            return ["success" => false, "error" => $e->getMessage(), "latency" => (int)((microtime(true) - $start) * 1000)];
+        }
+    }
 }
