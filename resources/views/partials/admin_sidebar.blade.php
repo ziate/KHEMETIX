@@ -38,6 +38,11 @@
                 <span>{{ __('messages.models') }}</span>
             </a>
 
+            <a href="{{ route('admin.ai-chat.index') }}" class="sidebar-link {{ request()->routeIs('admin.ai-chat.*') ? 'active' : '' }}">
+                <i class="bi bi-chat-dots-fill"></i>
+                <span>{{ __('messages.ai_chat') }}</span>
+            </a>
+
             <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <i class="bi bi-gear-wide-connected"></i>
                 <span>{{ __('messages.settings') }}</span>
