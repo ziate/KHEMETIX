@@ -68,6 +68,7 @@
     </style>
 
     <div class="ai-chat-shell" data-send-url="{{ route('admin.ai-chat.send') }}">
+    <div class="ai-chat-shell">
         <div class="row g-0">
             <div class="col-lg-3 ai-chat-sidebar p-4">
                 <div class="d-flex align-items-center gap-2 mb-4">
@@ -112,6 +113,7 @@
                             <div class="progress-bar bg-info" role="progressbar" style="width: 82%"></div>
                         </div>
                         <small class="text-muted d-block mt-2">{{ count($models) }} @lang('messages.models')</small>
+                        <small class="text-muted d-block mt-2">18 @lang('messages.models')</small>
                     </div>
                 </div>
             </div>
@@ -131,6 +133,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                        <div class="d-flex gap-2">
                             <button class="btn btn-outline-light btn-sm ai-action">
                                 <i class="bi bi-cloud-arrow-down me-1"></i>
                                 @lang('messages.generate_zip')
@@ -186,6 +189,44 @@
                             @lang('messages.send')
                         </button>
                     </form>
+                <div class="ai-chat-area p-4 d-flex flex-column gap-4">
+                    <div class="ai-message ai-assistant">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                            <i class="bi bi-robot"></i>
+                            <small class="fw-bold">@lang('messages.ai_assistant')</small>
+                        </div>
+                        <p class="mb-0">@lang('messages.ai_chat_welcome')</p>
+                    </div>
+
+                    <div class="ai-message ai-user align-self-end">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-info justify-content-end">
+                            <small class="fw-bold">@lang('messages.you')</small>
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <p class="mb-0">@lang('messages.ai_chat_sample_request')</p>
+                    </div>
+
+                    <div class="ai-message ai-assistant">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                            <i class="bi bi-robot"></i>
+                            <small class="fw-bold">@lang('messages.ai_assistant')</small>
+                        </div>
+                        <p class="mb-0">@lang('messages.ai_chat_sample_reply')</p>
+                    </div>
+                </div>
+
+                <div class="p-4 border-top border-white border-opacity-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border border-end-0 border-white border-opacity-10">
+                            <i class="bi bi-lightning-charge-fill text-info"></i>
+                        </span>
+                        <input type="text" class="form-control ai-input border-start-0"
+                            placeholder="@lang('messages.ai_chat_placeholder')">
+                        <button class="btn btn-primary ai-action px-4">
+                            <i class="bi bi-send-fill me-1"></i>
+                            @lang('messages.send')
+                        </button>
+                    </div>
                     <small class="text-muted d-block mt-2">@lang('messages.ai_chat_footer')</small>
                 </div>
             </div>

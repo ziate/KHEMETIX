@@ -118,5 +118,11 @@ class AiChatController extends Controller
         }
 
         return $conversation;
+
+class AiChatController extends Controller
+{
+    public function index()
+    {
+        return view('admin.ai_chat.index');
     }
 }
