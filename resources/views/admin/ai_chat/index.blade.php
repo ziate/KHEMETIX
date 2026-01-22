@@ -67,6 +67,7 @@
         }
     </style>
 
+    <div class="ai-chat-shell" data-send-url="{{ route('admin.ai-chat.send') }}">
     <div class="ai-chat-shell">
         <div class="row g-0">
             <div class="col-lg-3 ai-chat-sidebar p-4">
@@ -111,6 +112,7 @@
                         <div class="progress" style="height: 6px; background: rgba(148, 163, 184, 0.15);">
                             <div class="progress-bar bg-info" role="progressbar" style="width: 82%"></div>
                         </div>
+                        <small class="text-muted d-block mt-2">{{ count($models) }} @lang('messages.models')</small>
                         <small class="text-muted d-block mt-2">18 @lang('messages.models')</small>
                     </div>
                 </div>
@@ -123,6 +125,14 @@
                             <h5 class="mb-1 text-white">@lang('messages.ai_chat_title')</h5>
                             <small class="text-muted">@lang('messages.ai_chat_hint')</small>
                         </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <select id="ai-chat-model" class="form-select form-select-sm text-bg-dark border border-white border-opacity-10">
+                                @foreach($models as $modelId => $model)
+                                    <option value="{{ $modelId }}" @selected($selectedModel === $modelId)>
+                                        {{ $model['name'] ?? $modelId }}
+                                    </option>
+                                @endforeach
+                            </select>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-light btn-sm ai-action">
                                 <i class="bi bi-cloud-arrow-down me-1"></i>
@@ -136,6 +146,49 @@
                     </div>
                 </div>
 
+                <div id="ai-chat-messages" class="ai-chat-area p-4 d-flex flex-column gap-4">
+                    @forelse($messages as $message)
+                        @if($message->role === 'assistant')
+                            <div class="ai-message ai-assistant">
+                                <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                                    <i class="bi bi-robot"></i>
+                                    <small class="fw-bold">@lang('messages.ai_assistant')</small>
+                                </div>
+                                <p class="mb-0">{{ $message->content }}</p>
+                            </div>
+                        @elseif($message->role === 'user')
+                            <div class="ai-message ai-user align-self-end">
+                                <div class="d-flex align-items-center gap-2 mb-2 text-info justify-content-end">
+                                    <small class="fw-bold">@lang('messages.you')</small>
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <p class="mb-0">{{ $message->content }}</p>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="ai-message ai-assistant">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                                <i class="bi bi-robot"></i>
+                                <small class="fw-bold">@lang('messages.ai_assistant')</small>
+                            </div>
+                            <p class="mb-0">@lang('messages.ai_chat_welcome')</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="p-4 border-top border-white border-opacity-10">
+                    <form id="ai-chat-form" class="input-group">
+                        @csrf
+                        <span class="input-group-text bg-transparent border border-end-0 border-white border-opacity-10">
+                            <i class="bi bi-lightning-charge-fill text-info"></i>
+                        </span>
+                        <textarea id="ai-chat-input" class="form-control ai-input border-start-0"
+                            rows="2" placeholder="@lang('messages.ai_chat_placeholder')"></textarea>
+                        <button id="ai-chat-send" class="btn btn-primary ai-action px-4" type="submit">
+                            <i class="bi bi-send-fill me-1"></i>
+                            @lang('messages.send')
+                        </button>
+                    </form>
                 <div class="ai-chat-area p-4 d-flex flex-column gap-4">
                     <div class="ai-message ai-assistant">
                         <div class="d-flex align-items-center gap-2 mb-2 text-primary">
@@ -179,4 +232,83 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        (function () {
+            const shell = document.querySelector('.ai-chat-shell');
+            const form = document.getElementById('ai-chat-form');
+            const input = document.getElementById('ai-chat-input');
+            const messages = document.getElementById('ai-chat-messages');
+            const sendButton = document.getElementById('ai-chat-send');
+            const modelSelect = document.getElementById('ai-chat-model');
+            const token = form.querySelector('input[name="_token"]').value;
+
+            const appendMessage = (role, content) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = role === 'assistant'
+                    ? 'ai-message ai-assistant'
+                    : 'ai-message ai-user align-self-end';
+
+                const header = document.createElement('div');
+                header.className = role === 'assistant'
+                    ? 'd-flex align-items-center gap-2 mb-2 text-primary'
+                    : 'd-flex align-items-center gap-2 mb-2 text-info justify-content-end';
+
+                header.innerHTML = role === 'assistant'
+                    ? '<i class="bi bi-robot"></i><small class="fw-bold">{{ __('messages.ai_assistant') }}</small>'
+                    : '<small class="fw-bold">{{ __('messages.you') }}</small><i class="bi bi-person-circle"></i>';
+
+                const body = document.createElement('p');
+                body.className = 'mb-0';
+                body.textContent = content;
+
+                wrapper.appendChild(header);
+                wrapper.appendChild(body);
+                messages.appendChild(wrapper);
+                messages.scrollTop = messages.scrollHeight;
+            };
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const message = input.value.trim();
+                if (!message) {
+                    return;
+                }
+
+                appendMessage('user', message);
+                input.value = '';
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ __('messages.sending') }}';
+
+                try {
+                    const response = await fetch(shell.dataset.sendUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                        },
+                        body: JSON.stringify({
+                            message,
+                            model: modelSelect.value,
+                        }),
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || '{{ __('messages.ai_chat_error') }}');
+                    }
+
+                    appendMessage('assistant', data.message.content);
+                } catch (error) {
+                    appendMessage('assistant', `${error.message}`);
+                } finally {
+                    sendButton.disabled = false;
+                    sendButton.innerHTML = '<i class="bi bi-send-fill me-1"></i>{{ __('messages.send') }}';
+                }
+            });
+        })();
+    </script>
 @endsection

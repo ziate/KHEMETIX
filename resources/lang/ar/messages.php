@@ -88,6 +88,8 @@ return [
     'ai_chat_footer' => 'سيتم توليد نسخة ZIP جاهزة للتحميل بعد اكتمال البناء.',
     'ai_assistant' => 'المساعد الذكي',
     'you' => 'أنت',
+    'sending' => 'جارٍ الإرسال...',
+    'ai_chat_error' => 'حدث خطأ أثناء التواصل مع الذكاء الاصطناعي.',
     'project_profile' => 'ملف المشروع',
     'connected' => 'متصل',
     'groq_models' => 'نماذج Groq',

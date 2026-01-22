@@ -104,6 +104,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/models', [AdminModel::class, 'index'])->name('models.index');
         Route::get('/settings', [AdminSettings::class, 'index'])->name('settings.index');
         Route::get('/ai-chat', [AdminAiChat::class, 'index'])->name('ai-chat.index');
+        Route::post('/ai-chat/send', [AdminAiChat::class, 'send'])->name('ai-chat.send');
     });
 });
 

@@ -49,6 +49,8 @@ return [
     "ai_chat_footer" => "A ready-to-download ZIP will be generated after build completion.",
     "ai_assistant" => "AI Assistant",
     "you" => "You",
+    "sending" => "Sending...",
+    "ai_chat_error" => "There was an error contacting the AI service.",
     "project_profile" => "Project Profile",
     "connected" => "Connected",
     "groq_models" => "Groq Models",
